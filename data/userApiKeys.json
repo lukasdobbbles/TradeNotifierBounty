@@ -1,0 +1,18 @@
+{
+  "231316378332692480": {
+    "apiKey": "FGtkd7xtTc3omXSn",
+    "scriptActive": true,
+    "subscriptionToken": "dcbd25a8ccd08886acb8"
+  },
+  "244061008186966016": {
+    "apiKey": "2fmKUJyThq5Rxcwc",
+    "scriptActive": false,
+    "subscriptionToken": "2a31028757fcbeb4120e",
+    "processInterval": 30000
+  },
+  "629859661675233310": {
+    "apiKey": "RPH1tmlvL4NLfXmr",
+    "scriptActive": true,
+    "subscriptionToken": "02117029f310a25d8ffb"
+  }
+}

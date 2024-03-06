@@ -1,0 +1,26 @@
+{
+  "ab1ea27fce1e16f2b8bc": {
+    "weeks": 0,
+    "used": true,
+    "permanent": true,
+    "expiration": "2024-02-21T05:11:34.752Z"
+  },
+  "dcbd25a8ccd08886acb8": {
+    "weeks": 0,
+    "used": true,
+    "permanent": true,
+    "expiration": "2024-02-21T05:59:18.141Z"
+  },
+  "2a31028757fcbeb4120e": {
+    "weeks": 0,
+    "used": true,
+    "permanent": true,
+    "expiration": "2024-02-22T02:28:44.716Z"
+  },
+  "02117029f310a25d8ffb": {
+    "weeks": 10,
+    "used": true,
+    "permanent": false,
+    "expiration": "2024-05-14T05:24:58.552Z"
+  }
+}
