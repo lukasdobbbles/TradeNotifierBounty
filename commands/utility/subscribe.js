@@ -1,5 +1,4 @@
 const { SlashCommandBuilder } = require("discord.js");
-const fs = require("node:fs");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -8,34 +7,26 @@ module.exports = {
     .addStringOption((option) =>
       option
         .setName("token-to-subscribe")
-        .setDescription("the token to subscribe")
+        .setDescription("the token to subscribe"),
     ),
   async execute(interaction) {
     const tokenToSubscribe =
       interaction.options.get("token-to-subscribe").value;
-    if (
-      interaction.client.subscriptionTokens[tokenToSubscribe] &&
-      !interaction.client.subscriptionTokens[tokenToSubscribe].used
-    ) {
-      const weeks = client.subscriptionTokens[tokenToSubscribe].weeks;
+    let subTokens = await client.db.get("subscriptionTokens");
+    let userApiKeys = await client.db.get("userApiKeys");
+    if (subTokens[tokenToSubscribe] && !subTokens[tokenToSubscribe].used) {
+      const weeks = subTokens[tokenToSubscribe].weeks;
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + weeks * 7);
-      interaction.client.subscriptionTokens[tokenToSubscribe].used = true;
-      interaction.client.subscriptionTokens[tokenToSubscribe].expiration =
-        expirationDate.toISOString();
-      interaction.client.userApiKeys[interaction.user.id] = {
+      subTokens[tokenToSubscribe].used = true;
+      subTokens[tokenToSubscribe].expiration = expirationDate.toISOString();
+      userApiKeys[interaction.user.id] = {
         ...client.userApiKeys[interaction.user.id],
         subscriptionToken: tokenToSubscribe,
         scriptActive: true,
       };
-      fs.writeFileSync(
-        client.subscriptionTokensPath,
-        JSON.stringify(client.subscriptionTokens, null, 2)
-      );
-      fs.writeFileSync(
-        client.userApiKeysPath,
-        JSON.stringify(client.userApiKeys, null, 2)
-      );
+      await client.db.set("subscriptionTokens", subTokens);
+      await client.db.set("userApiKeys", userApiKeys);
       interaction.reply({
         content: "Subscription activated successfully!",
         ephemeral: true,

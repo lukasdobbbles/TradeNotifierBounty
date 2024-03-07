@@ -19,7 +19,7 @@ module.exports = {
       return;
     }
     const weeks = interaction.options.get("weeks").value;
-    const token = generateSubscriptionToken(weeks);
+    const token = await generateSubscriptionToken(weeks);
     interaction.reply({
       content: `New token generated: ${token}`,
       ephemeral: true,

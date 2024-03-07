@@ -1,17 +1,13 @@
-const fs = require("node:fs");
-
-module.exports = () => {
+module.exports = async () => {
   const currentTimestamp = Math.floor(Date.now() / 1000);
   const sixHoursAgo = currentTimestamp - 21600;
-  for (const tradeID in client.tradeStorage) {
-    const tradeData = client.tradeStorage[tradeID];
+  let tradeStorage = await client.db.get("tradeStorage");
+  for (const tradeID in tradeStorage) {
+    const tradeData = tradeStorage[tradeID];
     if (tradeData.timestamp < sixHoursAgo) {
-      delete client.tradeStorage[tradeID];
+      delete tradeStorage[tradeID];
       console.log(`Cleared old data for trade ID ${tradeID}`);
     }
   }
-  fs.writeFileSync(
-    client.tradeStoragePath,
-    JSON.stringify(client.tradeStorage, null, 2)
-  );
+  await client.db.set("tradeStorage", tradeStorage);
 };

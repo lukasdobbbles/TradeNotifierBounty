@@ -1,17 +1,14 @@
 const crypto = require("crypto");
-const fs = require("node:fs");
 
-module.exports = (weeks) => {
+module.exports = async (weeks) => {
   const token = crypto.randomBytes(10).toString("hex");
-  client.subscriptionTokens[token] = {
+  let subTokens = client.db.get("subscriptionTokens");
+  subTokens[token] = {
     weeks: weeks,
     used: false,
     permanent: weeks === 0,
     expiration: null,
   };
-  fs.writeFileSync(
-    client.subscriptionTokensPath,
-    JSON.stringify(client.subscriptionTokens, null, 2)
-  );
+  await client.db.set("subscriptionTokens", subTokens);
   return token;
 };

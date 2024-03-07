@@ -20,7 +20,7 @@ module.exports = {
     }
     axios
       .get(`https://api.torn.com/user/?selections=basic&key=${apiKey}`)
-      .then((response) => {
+      .then(async (response) => {
         const userData = response.data;
         if (
           userData &&
@@ -31,15 +31,13 @@ module.exports = {
           userData.status &&
           userData.status.description
         ) {
-          interaction.client.userApiKeys[interaction.user.id] = {
+          let userApiKeys = await client.db.get("userApiKeys");
+          userApiKeys[interaction.user.id] = {
             apiKey: apiKey,
             scriptActive: false,
             subscriptionToken: null,
           };
-          fs.writeFileSync(
-            interaction.client.userApiKeysPath,
-            JSON.stringify(interaction.client.userApiKeys, null, 2)
-          );
+          await client.db.set("userApiKeys", userApiKeys);
           interaction.reply({
             content: "API key registered successfully.",
             ephemeral: true,

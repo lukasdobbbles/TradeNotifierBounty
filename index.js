@@ -1,11 +1,10 @@
-require("dotenv")();
-
 const { Client, GatewayIntentBits, Collection, Events } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const clearOldTradeData = require("./utils/clearOldTradeData");
 const onReady = require("./events/ready");
 const onInteraction = require("./events/interaction");
+const Database = require("@replit/database")
 
 global.client = new Client({
   intents: [
@@ -16,28 +15,13 @@ global.client = new Client({
   partials: ["CHANNEL"],
 });
 
+client.db = new Database()
+
 client.lockTradeID = {};
 client.userIntervals = {}; // Keep track of user intervals
 
 client.commands = new Collection();
 
-client.tradeStoragePath = path.join(__dirname, "data", "tradeStorage.json");
-client.userApiKeysPath = path.join(__dirname, "data", "userApiKeys.json");
-client.subscriptionTokensPath = path.join(
-  __dirname,
-  "data",
-  "subscriptionTokens.json"
-);
-
-client.tradeStorage = fs.existsSync(client.tradeStoragePath)
-  ? JSON.parse(fs.readFileSync(client.tradeStoragePath))
-  : {};
-client.userApiKeys = fs.existsSync(client.userApiKeysPath)
-  ? JSON.parse(fs.readFileSync(client.userApiKeysPath))
-  : {};
-client.subscriptionTokens = fs.existsSync(client.subscriptionTokensPath)
-  ? JSON.parse(fs.readFileSync(client.subscriptionTokensPath))
-  : {};
 const foldersPath = path.join(__dirname, "commands");
 const commandFolders = fs.readdirSync(foldersPath);
 

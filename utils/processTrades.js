@@ -4,14 +4,17 @@ const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
 
 module.exports = async (userId) => {
   const now = new Date();
-  const userSettings = client.userApiKeys[userId];
+  let userApiKeys = await client.db.get("userApiKeys");
+  let subTokens = await client.db.get("subscriptionTokens");
+  let tradeStorage = await client.db.get("tradeStorage");
+  const userSettings = userApiKeys[userId];
   if (!userSettings) return;
   const subscriptionToken = userSettings.subscriptionToken;
-  if (!subscriptionToken || !client.subscriptionTokens[subscriptionToken]) {
+  if (!subscriptionToken || !subTokens[subscriptionToken]) {
     console.log(`No active subscription found for user ${userId}`);
     return;
   }
-  const subscriptionData = client.subscriptionTokens[subscriptionToken];
+  const subscriptionData = subTokens[subscriptionToken];
   if (
     !subscriptionData.permanent &&
     new Date(subscriptionData.expiration) < now
@@ -24,20 +27,20 @@ module.exports = async (userId) => {
   const fetchResult = await fetchTradeLogs(apiKey, userId);
   if (!fetchResult) {
     console.log(
-      `Error fetching trade logs for user ${userId}. Continuing to the next user.`
+      `Error fetching trade logs for user ${userId}. Continuing to the next user.`,
     );
     return;
   }
   const { tradeLogs, userID } = fetchResult;
   if (!tradeLogs || !tradeLogs.log) {
     console.log(
-      `No trade logs found or tradeLogs.log is undefined for user ${userId}`
+      `No trade logs found or tradeLogs.log is undefined for user ${userId}`,
     );
     return;
   }
   const userTradeLogs = tradeLogs.log;
   const sortedTradeLogs = Object.values(userTradeLogs).sort(
-    (a, b) => a.timestamp - b.timestamp
+    (a, b) => a.timestamp - b.timestamp,
   );
   const user = await client.users.fetch(userID);
   for (const logEntry of sortedTradeLogs) {
@@ -61,42 +64,39 @@ module.exports = async (userId) => {
       continue;
     }
     if (log === 4430 || log === 4410) {
-      if (
-        client.tradeStorage[tradeID] &&
-        client.tradeStorage[tradeID].messageID
-      ) {
+      if (tradeStorage[tradeID] && tradeStorage[tradeID].messageID) {
         const dmChannel = await client.channels.fetch(
-          client.tradeStorage[tradeID].dmChannelID
+          tradeStorage[tradeID].dmChannelID,
         );
         try {
           const message = await dmChannel.messages.fetch(
-            client.tradeStorage[tradeID].messageID
+            tradeStorage[tradeID].messageID,
           );
           await message.delete();
           console.log(`Deleted message for trade ID ${tradeID}`);
-          delete client.tradeStorage[tradeID];
+          delete tradeStorage[tradeID];
           lockTradeID[tradeID] = true;
         } catch (error) {
           console.error(
-            `Error deleting message for trade ID ${tradeID}: ${error}`
+            `Error deleting message for trade ID ${tradeID}: ${error}`,
           );
         }
-        if (!client.tradeStorage[tradeID]) {
-          client.tradeStorage[tradeID] = {};
+        if (!tradeStorage[tradeID]) {
+          tradeStorage[tradeID] = {};
         }
       }
     } else {
-      if (!client.tradeStorage[tradeID]) {
-        client.tradeStorage[tradeID] = {};
+      if (!tradeStorage[tradeID]) {
+        tradeStorage[tradeID] = {};
       }
-      client.tradeStorage[tradeID].locked = false;
+      tradeStorage[tradeID].locked = false;
     }
     if (lockTradeID[tradeID]) {
       continue;
     } else {
       if (
-        !client.tradeStorage[tradeID] ||
-        client.tradeStorage[tradeID].timestamp !== timestamp
+        !tradeStorage[tradeID] ||
+        tradeStorage[tradeID].timestamp !== timestamp
       ) {
         const notificationType = {
           4482: "Items added to your trade",
@@ -130,7 +130,7 @@ module.exports = async (userId) => {
                   ? userData.faction.faction_name
                   : "None",
                 inline: true,
-              }
+              },
             )
             .setDescription(`${notificationType}`)
             .setThumbnail(userData.profile_image)
@@ -147,25 +147,22 @@ module.exports = async (userId) => {
             new MessageButton()
               .setStyle("LINK")
               .setURL(
-                `https://www.torn.com/profiles.php?XID=${userData.player_id}`
+                `https://www.torn.com/profiles.php?XID=${userData.player_id}`,
               )
               .setLabel("View Profile"),
             new MessageButton()
               .setStyle("DANGER")
               .setCustomId("delete_message")
-              .setLabel("DELETE")
+              .setLabel("DELETE"),
           );
           try {
             await user.createDM();
-            if (
-              client.tradeStorage[tradeID] &&
-              client.tradeStorage[tradeID].messageID
-            ) {
+            if (tradeStorage[tradeID] && tradeStorage[tradeID].messageID) {
               const dmChannel = await client.channels.fetch(
-                client.tradeStorage[tradeID].dmChannelID
+                tradeStorage[tradeID].dmChannelID,
               );
               const message = await dmChannel.messages.fetch(
-                client.tradeStorage[tradeID].messageID
+                tradeStorage[tradeID].messageID,
               );
               await message.edit({ embeds: [embed], components: [row] });
             } else {
@@ -174,19 +171,19 @@ module.exports = async (userId) => {
                 components: [row],
               });
               console.log(
-                `Updated trade notification for trade ID ${tradeID} for user ${userID}.`
+                `Updated trade notification for trade ID ${tradeID} for user ${userID}.`,
               ); // Logging for updated trade
-              client.tradeStorage[tradeID] = {
+              tradeStorage[tradeID] = {
                 messageID: message.id,
                 dmChannelID: message.channel.id,
                 timestamp: timestamp,
                 locked: false,
               };
               console.log(
-                `Sent new trade notification for trade ID ${tradeID} for user ${userID}.`
+                `Sent new trade notification for trade ID ${tradeID} for user ${userID}.`,
               ); // Logging for new trade
             }
-            client.tradeStorage[tradeID].locked = true;
+            tradeStorage[tradeID].locked = true;
           } catch (error) {
             console.error(`Error sending DM: ${error}`);
             continue;
@@ -195,8 +192,5 @@ module.exports = async (userId) => {
       }
     }
   }
-  fs.writeFileSync(
-    client.tradeStoragePath,
-    JSON.stringify(client.tradeStorage, null, 2)
-  );
+  await client.db.set("tradeStorage", tradeStorage);
 };

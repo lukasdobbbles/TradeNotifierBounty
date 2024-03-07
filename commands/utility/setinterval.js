@@ -23,21 +23,19 @@ module.exports = {
       return;
     }
     // Update user's processInterval
-    interaction.client.userApiKeys[interaction.user.id] = {
-      ...interaction.client.userApiKeys[interaction.user.id],
+    let userApiKeys = await client.db.get("userApiKeys")
+    userApiKeys[interaction.user.id] = {
+      ...client.userApiKeys[interaction.user.id],
       processInterval: interval * 1000, // Convert to milliseconds
     };
-    fs.writeFileSync(
-      interaction.client.userApiKeysPath,
-      JSON.stringify(interaction.client.userApiKeys, null, 2)
-    );
+    await client.db.set("userApiKeys", userApiKeys);
 
     // Clear existing interval if present
-    if (interaction.client.userIntervals[interaction.user.id]) {
+    if (client.userIntervals[interaction.user.id]) {
       clearInterval(client.userIntervals[interaction.user.id]);
     }
     // Set new interval
-    interaction.client.userIntervals[interaction.user.id] = setInterval(
+    client.userIntervals[interaction.user.id] = setInterval(
       () => interaction.client.processTrades(interaction.user.id),
       interval * 1000
     );

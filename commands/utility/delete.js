@@ -9,13 +9,13 @@ module.exports = {
         console.error("Client is not ready, cannot delete messages.");
         return;
       }
-      const dmChannel = await interaction.client.users
+      const dmChannel = await client.users
         .fetch(targetUserId)
         .then((user) => user.createDM());
       const botMessages = await dmChannel.messages
         .fetch({ limit: 100 })
         .then((messages) =>
-          messages.filter((msg) => msg.author.id === client.user.id)
+          messages.filter((msg) => msg.user.id === client.user.id)
         );
       for (const msg of botMessages.values()) {
         try {

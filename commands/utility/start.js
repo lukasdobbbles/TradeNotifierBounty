@@ -3,7 +3,9 @@ const { SlashCommandBuilder } = require("discord.js");
 module.exports = {
   data: new SlashCommandBuilder().setName("start").setDescription("start"),
   async execute(interaction) {
-    if (!interaction.client.userApiKeys[interaction.user.id]) {
+    let userApiKeys = await client.db.get("userApiKeys");
+    let subTokens = await client.db.get("subscriptionTokens");
+    if (!userApiKeys[interaction.user.id]) {
       interaction.reply({
         content:
           "You are not registered. Use `/register <API_KEY>` to register.",
@@ -12,10 +14,8 @@ module.exports = {
       return;
     }
     if (
-      !interaction.client.userApiKeys[interaction.user.id].subscriptionToken ||
-      !interaction.client.subscriptionTokens[
-        interaction.client.userApiKeys[interaction.user.id].subscriptionToken
-      ]
+      !userApiKeys[interaction.user.id].subscriptionToken ||
+      !subTokens[userApiKeys[interaction.user.id].subscriptionToken]
     ) {
       interaction.reply({
         content:
@@ -24,7 +24,7 @@ module.exports = {
       });
       return;
     }
-    if (interaction.client.userApiKeys[interaction.user.id].scriptActive) {
+    if (userApiKeys[interaction.user.id].scriptActive) {
       interaction.reply({
         content: "Trade processing is already running.",
         ephemeral: true,
@@ -32,10 +32,7 @@ module.exports = {
       return;
     }
     interaction.client.userApiKeys[interaction.user.id].scriptActive = true;
-    fs.writeFileSync(
-      interaction.client.userApiKeysPath,
-      JSON.stringify(interaction.client.userApiKeys, null, 2)
-    );
+    await client.db.set("userApiKeys", userApiKeys);
     interaction.reply({
       content: "Trade processing started.",
       ephemeral: true,

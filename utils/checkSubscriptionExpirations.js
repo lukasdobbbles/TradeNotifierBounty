@@ -1,23 +1,17 @@
-const fs = require("node:fs");
-
-module.exports = () => {
+module.exports = async () => {
   const now = new Date();
-  Object.entries(client.subscriptionTokens).forEach(([token, data]) => {
+  let subTokens = await client.db.get("subscriptionTokens");
+  let userApiKeys = await client.db.get("userApiKeys")
+  Object.entries(subTokens).forEach(([token, data]) => {
     if (data.used && !data.permanent && new Date(data.expiration) < now) {
       Object.entries(client.userApiKeys).forEach(([userId, userDetails]) => {
         if (userDetails.subscriptionToken === token) {
-          client.userApiKeys[userId].scriptActive = false;
+          userApiKeys[userId].scriptActive = false;
         }
       });
-      delete client.subscriptionTokens[token];
+      delete subTokens[token];
     }
   });
-  fs.writeFileSync(
-    client.userApiKeysPath,
-    JSON.stringify(client.userApiKeys, null, 2)
-  );
-  fs.writeFileSync(
-    client.subscriptionTokensPath,
-    JSON.stringify(client.subscriptionTokens, null, 2)
-  );
+  client.db.set("subscriptionTokens", subTokens);
+  client.db.set("userApiKeys", userApiKeys);
 };

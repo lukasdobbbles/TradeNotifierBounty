@@ -1,0 +1,5 @@
+run="npx node index.js"
+
+[[ports]]
+localPort = 3000
+externalPort = 80

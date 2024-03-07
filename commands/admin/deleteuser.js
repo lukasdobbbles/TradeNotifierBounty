@@ -23,19 +23,17 @@ module.exports = {
       });
       return;
     }
-    if (interaction.client.userApiKeys[userToDelete]) {
-      delete interaction.client.userApiKeys[userToDelete];
-      fs.writeFileSync(
-        client.userApiKeysPath,
-        JSON.stringify(client.userApiKeys, null, 2)
-      );
+    let userApiKeys = await interaction.client.db.get("userApiKeys")  
+    if (userApiKeys[userToDelete]) {
+      delete userApiKeys[userToDelete];
+      await interaction.client.db.set("userApiKeys", userApiKeys);
       interaction.reply({
         content: `User ${userToDelete} has been deleted successfully.`,
         ephemeral: true,
       });
     } else {
       interaction.reply({
-        content: "User not found in the client.userApiKeys.",
+        content: "User not found in the userApiKeys.",
         ephemeral: true,
       });
     }

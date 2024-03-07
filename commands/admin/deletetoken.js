@@ -1,12 +1,11 @@
 const { SlashCommandBuilder } = require("discord.js");
-const { fs } = require("node:fs");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("deletetoken")
     .setDescription("deletes token (admin-only command)")
     .addStringOption((option) =>
-      option.setName("token").setDescription("the token to delete")
+      option.setName("token").setDescription("the token to delete"),
     ),
   async execute(interaction) {
     if (interaction.user.id !== process.env["admin_id"]) {
@@ -24,19 +23,19 @@ module.exports = {
       });
       return;
     }
-    if (interaction.client.subscriptionTokens[tokenToDelete]) {
-      delete interaction.client.subscriptionTokens[tokenToDelete];
-      fs.writeFileSync(
-        interaction.client.subscriptionTokensPath,
-        JSON.stringify(interaction.client.subscriptionTokens, null, 2)
-      );
+
+    let subTokens = await interaction.client.db.get("subscriptionTokens");
+    if (subTokens[tokenToDelete]) {
+      delete subTokens[tokenToDelete];
+      await db.set("subscriptionTokens", subTokens);
+
       interaction.reply({
         content: `Token "${tokenToDelete}" has been deleted successfully.`,
         ephemeral: true,
       });
     } else {
       interaction.reply({
-        content: "Token not found in the client.subscriptionTokens.",
+        content: "Token not found in the subscriptionTokens.",
         ephemeral: true,
       });
     }
