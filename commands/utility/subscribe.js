@@ -7,7 +7,7 @@ module.exports = {
     .addStringOption((option) =>
       option
         .setName("token-to-subscribe")
-        .setDescription("the token to subscribe"),
+        .setDescription("the token to subscribe")
     ),
   async execute(interaction) {
     const tokenToSubscribe =
@@ -21,7 +21,7 @@ module.exports = {
       subTokens[tokenToSubscribe].used = true;
       subTokens[tokenToSubscribe].expiration = expirationDate.toISOString();
       userApiKeys[interaction.user.id] = {
-        ...client.userApiKeys[interaction.user.id],
+        ...userApiKeys[interaction.user.id],
         subscriptionToken: tokenToSubscribe,
         scriptActive: true,
       };

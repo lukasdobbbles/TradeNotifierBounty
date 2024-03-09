@@ -31,7 +31,7 @@ module.exports = {
       });
       return;
     }
-    interaction.client.userApiKeys[interaction.user.id].scriptActive = true;
+    userApiKeys[interaction.user.id].scriptActive = true;
     await client.db.set("userApiKeys", userApiKeys);
     interaction.reply({
       content: "Trade processing started.",

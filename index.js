@@ -1,10 +1,11 @@
+require("dotenv").config();
 const { Client, GatewayIntentBits, Collection, Events } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const clearOldTradeData = require("./utils/clearOldTradeData");
 const onReady = require("./events/ready");
-const onInteraction = require("./events/interaction");
-const Database = require("@replit/database")
+const onInteraction = require("interaction");
+const Database = require("@replit/database");
 
 global.client = new Client({
   intents: [
@@ -15,7 +16,7 @@ global.client = new Client({
   partials: ["CHANNEL"],
 });
 
-client.db = new Database()
+client.db = new Database();
 
 client.lockTradeID = {};
 client.userIntervals = {}; // Keep track of user intervals
@@ -50,3 +51,4 @@ client.on(Events.InteractionCreate, onInteraction);
 client.login(process.env["token"]);
 
 clearOldTradeData();
+setInterval(clearOldTradeData, 3600000); // 3600000miliseconds = 1 hour

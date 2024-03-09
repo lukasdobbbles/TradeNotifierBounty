@@ -1,7 +1,9 @@
 const { SlashCommandBuilder } = require("discord.js");
 
 module.exports = {
-  data: new SlashCommandBuilder().setName("delete").setDescription("delete"),
+  data: new SlashCommandBuilder()
+    .setName("delete")
+    .setDescription("deletes the bot's messages"),
   async execute(interaction) {
     const targetUserId = interaction.user.id;
     try {

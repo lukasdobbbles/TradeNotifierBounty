@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require("discord.js");
-const fs = require("node:fs");
+const processTrades = require("../../utils/processTrades");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -23,9 +23,9 @@ module.exports = {
       return;
     }
     // Update user's processInterval
-    let userApiKeys = await client.db.get("userApiKeys")
+    let userApiKeys = await client.db.get("userApiKeys");
     userApiKeys[interaction.user.id] = {
-      ...client.userApiKeys[interaction.user.id],
+      ...userApiKeys[interaction.user.id],
       processInterval: interval * 1000, // Convert to milliseconds
     };
     await client.db.set("userApiKeys", userApiKeys);
@@ -36,7 +36,7 @@ module.exports = {
     }
     // Set new interval
     client.userIntervals[interaction.user.id] = setInterval(
-      () => interaction.client.processTrades(interaction.user.id),
+      () => processTrades(interaction.user.id),
       interval * 1000
     );
 
